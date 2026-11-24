@@ -32,10 +32,11 @@ import {
   Info
 } from 'lucide-react';
 import { apiService } from '../services/api';
+import LiveAppPreview from './LiveAppPreview';
 
 export default function ProjectResultsView({ project: initialProject, onStartNew }) {
   const [project, setProject] = useState(initialProject);
-  const [activeTab, setActiveTab] = useState('code');
+  const [activeTab, setActiveTab] = useState('preview');
   const [selectedFilePath, setSelectedFilePath] = useState(() => {
     return initialProject.files?.[0]?.path || '';
   });
@@ -411,8 +412,9 @@ export default function ProjectResultsView({ project: initialProject, onStartNew
         {/* Tab Navigation */}
         <div className="pt-4 border-t border-slate-800 flex items-center space-x-2 overflow-x-auto">
           {[
+            { id: 'preview', label: 'Live App Preview', icon: Eye, highlight: 'purple', badge: 'Interactive' },
             { id: 'code', label: 'Code & Files Explorer', icon: FileCode, count: project.files?.length },
-            { id: 'setup', label: 'Setup & Local Run', icon: Terminal, highlight: true },
+            { id: 'setup', label: 'Setup & Local Run', icon: Terminal, highlight: 'emerald' },
             { id: 'quality', label: 'Code Quality & Debugger', icon: ShieldCheck },
             { id: 'arch', label: 'Architecture & Flow', icon: Layers },
             { id: 'schema', label: 'Database Schema', icon: Database },
@@ -426,16 +428,25 @@ export default function ProjectResultsView({ project: initialProject, onStartNew
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition whitespace-nowrap ${
                   isAct
-                    ? tab.highlight
+                    ? tab.highlight === 'emerald'
                       ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
+                      : tab.highlight === 'purple'
+                      ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-md'
                       : 'bg-indigo-600 text-white shadow-md'
-                    : tab.highlight
+                    : tab.highlight === 'emerald'
                     ? 'bg-slate-950 text-emerald-400 border border-emerald-500/30 hover:bg-slate-800'
+                    : tab.highlight === 'purple'
+                    ? 'bg-slate-950 text-indigo-300 border border-indigo-500/30 hover:bg-slate-800 hover:text-white'
                     : 'bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
               >
                 <Icon className="w-4 h-4" />
                 <span>{tab.label}</span>
+                {tab.badge && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider">
+                    {tab.badge}
+                  </span>
+                )}
                 {tab.count !== undefined && (
                   <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-slate-800 text-slate-300">
                     {tab.count}
@@ -446,6 +457,11 @@ export default function ProjectResultsView({ project: initialProject, onStartNew
           })}
         </div>
       </div>
+
+      {/* Tab Content: Live Interactive App Preview */}
+      {activeTab === 'preview' && (
+        <LiveAppPreview project={project} />
+      )}
 
       {/* Tab Content: Code Explorer */}
       {activeTab === 'code' && (
