@@ -11,6 +11,17 @@
   </head>
   <body class="bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
     <div id="root"></div>
+    <script>
+      window.addEventListener('error', function(e) {
+        var root = document.getElementById('root');
+        if (root && (!root.children || root.children.length === 0)) {
+          var errDiv = document.createElement('div');
+          errDiv.style.cssText = 'padding: 24px; margin: 24px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 16px; color: #fca5a5; font-family: monospace; font-size: 13px;';
+          errDiv.innerHTML = '<strong style="color: #ef4444; font-size: 15px;">⚠️ CodeMind AI Startup Notice:</strong><br/><br/>' + (e.message || 'Script initialization error') + '<br/><span style="color:#94a3b8; font-size: 11px;">Source: ' + (e.filename || 'unknown') + ':' + e.lineno + '</span><br/><br/><button onclick="window.location.reload(true)" style="background:#6366f1; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:bold;">Hard Refresh (Ctrl + F5)</button>';
+          root.appendChild(errDiv);
+        }
+      });
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
