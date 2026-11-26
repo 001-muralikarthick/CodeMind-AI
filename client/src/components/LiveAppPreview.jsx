@@ -17,7 +17,9 @@ import {
   Activity,
   Layers,
   Sparkles,
-  Maximize2
+  Maximize2,
+  Camera,
+  Columns
 } from 'lucide-react';
 
 export default function LiveAppPreview({ project }) {
@@ -25,8 +27,9 @@ export default function LiveAppPreview({ project }) {
   const [activeRole, setActiveRole] = useState('user'); // 'user' | 'admin'
   const [reloadKey, setReloadKey] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [viewMode, setViewMode] = useState('app'); // 'app' | 'split' | 'screenshot'
 
-  const title = project?.title || 'Generated Application';
+  const title = project?.visualDesign?.detectedTitle || project?.title || 'Generated Application';
   const domain = (project?.requirementsAnalysis?.overview || project?.prompt || '').toLowerCase();
 
   // Detect domain
@@ -45,8 +48,9 @@ export default function LiveAppPreview({ project }) {
 
   // Generate interactive standalone HTML/CSS/JS document
   const previewHtml = useMemo(() => {
-    const primaryColor = isGym ? '#6366f1' : isCricket ? '#10b981' : isFood ? '#f59e0b' : '#3b82f6';
-    const accentColor = isGym ? '#8b5cf6' : isCricket ? '#059669' : isFood ? '#ef4444' : '#6366f1';
+    const visual = project?.visualDesign?.designSystem;
+    const primaryColor = visual?.primaryColor || (isGym ? '#6366f1' : isCricket ? '#10b981' : isFood ? '#f59e0b' : '#3b82f6');
+    const accentColor = visual?.secondaryColor || (isGym ? '#8b5cf6' : isCricket ? '#059669' : isFood ? '#ef4444' : '#6366f1');
 
     let specificContent = '';
 
@@ -582,7 +586,43 @@ export default function LiveAppPreview({ project }) {
         </div>
 
         {/* Device Switcher & Controls */}
-        <div className="flex items-center space-x-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          {/* Screenshot comparison toggles if screenshot exists */}
+          {project?.screenshot && (
+            <div className="p-1 rounded-xl bg-slate-950 border border-indigo-500/30 flex items-center space-x-1">
+              <button
+                onClick={() => setViewMode('app')}
+                title="Interactive App View"
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                  viewMode === 'app' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Monitor className="w-3.5 h-3.5" />
+                <span>App</span>
+              </button>
+              <button
+                onClick={() => setViewMode('split')}
+                title="Side-by-Side Comparison"
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                  viewMode === 'split' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Columns className="w-3.5 h-3.5" />
+                <span>Compare</span>
+              </button>
+              <button
+                onClick={() => setViewMode('screenshot')}
+                title="View Original Screenshot"
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                  viewMode === 'screenshot' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Camera className="w-3.5 h-3.5" />
+                <span>Screenshot</span>
+              </button>
+            </div>
+          )}
+
           {/* Device buttons */}
           <div className="p-1 rounded-xl bg-slate-950 border border-slate-800 flex items-center space-x-1">
             <button
@@ -668,25 +708,79 @@ export default function LiveAppPreview({ project }) {
           </div>
         </div>
 
-        {/* Interactive Sandbox iFrame */}
+        {/* Interactive Sandbox iFrame & Screenshot Comparison */}
         <div className="bg-slate-950/80 p-2 sm:p-4 flex items-center justify-center min-h-[560px] overflow-hidden">
-          <div
-            className={`transition-all duration-300 shadow-2xl rounded-xl overflow-hidden border border-slate-800 ${
-              device === 'mobile'
-                ? 'w-[390px] h-[640px]'
-                : device === 'tablet'
-                ? 'w-[768px] h-[640px]'
-                : 'w-full h-[640px]'
-            }`}
-          >
-            <iframe
-              key={reloadKey}
-              title="CodeMind Live App Sandbox"
-              srcDoc={previewHtml}
-              sandbox="allow-scripts allow-modals allow-same-origin allow-forms"
-              className="w-full h-full bg-slate-950 border-0"
-            />
-          </div>
+          {viewMode === 'screenshot' && project?.screenshot ? (
+            <div className="w-full max-w-4xl p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col items-center">
+              <div className="text-xs font-bold text-slate-300 mb-3 flex items-center space-x-2">
+                <Camera className="w-4 h-4 text-indigo-400" />
+                <span>Original Uploaded UI Design Mockup</span>
+              </div>
+              <img
+                src={project.screenshot}
+                alt="Original UI Design"
+                className="max-h-[600px] w-auto rounded-xl border border-slate-800 object-contain shadow-2xl"
+              />
+            </div>
+          ) : viewMode === 'split' && project?.screenshot ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full h-[640px]">
+              {/* Left Column: Original Screenshot */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-col overflow-hidden">
+                <div className="text-xs font-bold text-slate-300 mb-2 flex items-center justify-between pb-2 border-b border-slate-800">
+                  <div className="flex items-center space-x-1.5">
+                    <Camera className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Original Screenshot Mockup</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500 font-mono">Reference</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center overflow-auto bg-slate-950 rounded-lg p-2">
+                  <img
+                    src={project.screenshot}
+                    alt="Original UI Reference"
+                    className="max-h-full max-w-full object-contain rounded"
+                  />
+                </div>
+              </div>
+
+              {/* Right Column: Live App Sandbox */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-col overflow-hidden">
+                <div className="text-xs font-bold text-slate-300 mb-2 flex items-center justify-between pb-2 border-b border-slate-800">
+                  <div className="flex items-center space-x-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>AI Replicated Interactive App</span>
+                  </div>
+                  <span className="text-[10px] text-emerald-400 font-mono">Live Sandbox</span>
+                </div>
+                <div className="flex-1 rounded-lg overflow-hidden border border-slate-800 bg-slate-950">
+                  <iframe
+                    key={reloadKey}
+                    title="CodeMind Live App Sandbox Comparison"
+                    srcDoc={previewHtml}
+                    sandbox="allow-scripts allow-modals allow-same-origin allow-forms"
+                    className="w-full h-full bg-slate-950 border-0"
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div
+              className={`transition-all duration-300 shadow-2xl rounded-xl overflow-hidden border border-slate-800 ${
+                device === 'mobile'
+                  ? 'w-[390px] h-[640px]'
+                  : device === 'tablet'
+                  ? 'w-[768px] h-[640px]'
+                  : 'w-full h-[640px]'
+              }`}
+            >
+              <iframe
+                key={reloadKey}
+                title="CodeMind Live App Sandbox"
+                srcDoc={previewHtml}
+                sandbox="allow-scripts allow-modals allow-same-origin allow-forms"
+                className="w-full h-full bg-slate-950 border-0"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

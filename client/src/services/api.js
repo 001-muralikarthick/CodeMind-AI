@@ -24,14 +24,24 @@ async function safeJson(res, defaultMsg = 'Backend request failed') {
 }
 
 export const apiService = {
-  // Step 1 -> 2: Understand requirements
-  async analyzeRequirements(prompt) {
+  // Step 1 -> 2: Understand requirements (with optional UI Screenshot)
+  async analyzeRequirements(prompt, screenshot = null) {
     const res = await fetch(`${API_BASE}/generate/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({ prompt, screenshot })
     });
     return safeJson(res, 'Failed to analyze requirements');
+  },
+
+  // Dedicated Screenshot Vision analysis
+  async analyzeScreenshot(screenshot, prompt = '') {
+    const res = await fetch(`${API_BASE}/generate/analyze-screenshot`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ screenshot, prompt })
+    });
+    return safeJson(res, 'Failed to analyze screenshot');
   },
 
   // Step 2 -> 3: Generate detailed project plan for user review
@@ -45,11 +55,11 @@ export const apiService = {
   },
 
   // Step 3 -> 4: User approves plan -> Start building
-  async startGeneration(prompt, techSelection, approvedPlan) {
+  async startGeneration(prompt, techSelection, approvedPlan, visualDesign = null, screenshot = null) {
     const res = await fetch(`${API_BASE}/generate/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, techSelection, approvedPlan })
+      body: JSON.stringify({ prompt, techSelection, approvedPlan, visualDesign, screenshot })
     });
     return safeJson(res, 'Failed to start generation');
   },

@@ -34,6 +34,8 @@ const projectSchema = new mongoose.Schema(
     requirementsAnalysis: mongoose.Schema.Types.Mixed,
     projectPlan: mongoose.Schema.Types.Mixed,
     architecture: mongoose.Schema.Types.Mixed,
+    visualDesign: mongoose.Schema.Types.Mixed,
+    screenshot: String,
     folderStructure: mongoose.Schema.Types.Mixed,
     schemaDesign: mongoose.Schema.Types.Mixed,
     apiEndpoints: mongoose.Schema.Types.Mixed,

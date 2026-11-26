@@ -11,7 +11,8 @@ import {
   ArrowLeft,
   ShieldCheck,
   Check,
-  Code2
+  Code2,
+  Camera
 } from 'lucide-react';
 
 export default function ProjectPlanReview({ plan, onApprove, onBack, isStarting }) {
@@ -45,7 +46,13 @@ export default function ProjectPlanReview({ plan, onApprove, onBack, isStarting 
               Project Specification Blueprint
             </span>
             <h2 className="text-2xl font-black text-white mt-1">{plan.title}</h2>
-            <p className="text-xs text-slate-300 mt-1 italic max-w-2xl">"{plan.prompt}"</p>
+            {plan.visualDesign && (
+              <div className="inline-flex items-center space-x-1.5 mt-2 px-2.5 py-1 rounded-lg text-xs bg-indigo-500/10 text-indigo-300 border border-indigo-500/30">
+                <Camera className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Visual Layout Matched from Screenshot ({plan.visualDesign.detectedTitle || plan.visualDesign.domain})</span>
+              </div>
+            )}
+            <p className="text-xs text-slate-300 mt-2 italic max-w-2xl">"{plan.prompt}"</p>
           </div>
 
           <button

@@ -24,6 +24,7 @@ export default function App() {
   // 5 Stages: 'prompt' (Step 1) | 'tech_selection' (Step 2) | 'plan_review' (Step 3) | 'building' (Step 4) | 'export' (Step 5)
   const [currentStage, setCurrentStage] = useState('prompt');
   const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
+  const [screenshot, setScreenshot] = useState(null);
 
   // Loading states
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -46,13 +47,16 @@ export default function App() {
   // Saved history modal
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
-  // Step 1 -> Step 2: Analyze user prompt
-  const handleAnalyzePrompt = async (textPrompt) => {
+  // Step 1 -> Step 2: Analyze user prompt (and optional UI Screenshot)
+  const handleAnalyzePrompt = async (textPrompt, screenshotData = screenshot) => {
     setIsAnalyzing(true);
     setError(null);
     try {
-      const data = await apiService.analyzeRequirements(textPrompt);
+      const data = await apiService.analyzeRequirements(textPrompt, screenshotData);
       setAnalysis(data);
+      if (screenshotData && (!textPrompt || !textPrompt.trim()) && data.prompt) {
+        setPrompt(data.prompt);
+      }
       setCurrentStage('tech_selection');
     } catch (err) {
       setError(err.message || 'Failed to analyze requirements. Please verify backend server is running on port 5005.');
@@ -68,6 +72,10 @@ export default function App() {
     setSelectedTech(techChoices);
     try {
       const plan = await apiService.generateProjectPlan(prompt, techChoices);
+      // Attach visualDesign metadata if present
+      if (analysis?.visualDesign) {
+        plan.visualDesign = analysis.visualDesign;
+      }
       setGeneratedPlan(plan);
       setCurrentStage('plan_review');
     } catch (err) {
@@ -82,7 +90,13 @@ export default function App() {
     setIsStarting(true);
     setError(null);
     try {
-      const initRes = await apiService.startGeneration(prompt, selectedTech, generatedPlan);
+      const initRes = await apiService.startGeneration(
+        prompt,
+        selectedTech,
+        generatedPlan,
+        analysis?.visualDesign,
+        screenshot
+      );
       const newProjectId = initRes.projectId;
       setProjectId(newProjectId);
       setCurrentStage('building');
@@ -153,11 +167,13 @@ export default function App() {
     setCompletedProject(null);
     setAnalysis(null);
     setGeneratedPlan(null);
+    setScreenshot(null);
   };
 
   const handleQuickDemo = () => {
     setPrompt(DEFAULT_PROMPT);
-    handleAnalyzePrompt(DEFAULT_PROMPT);
+    setScreenshot(null);
+    handleAnalyzePrompt(DEFAULT_PROMPT, null);
   };
 
   const handleSelectHistoryProject = (selected) => {
@@ -197,11 +213,13 @@ export default function App() {
           </div>
         )}
 
-        {/* Step 1: User enters requirements */}
+        {/* Step 1: User enters requirements (Text and/or UI Screenshot) */}
         {currentStage === 'prompt' && (
           <PromptSection
             prompt={prompt}
             setPrompt={setPrompt}
+            screenshot={screenshot}
+            setScreenshot={setScreenshot}
             onAnalyze={handleAnalyzePrompt}
             isAnalyzing={isAnalyzing}
           />

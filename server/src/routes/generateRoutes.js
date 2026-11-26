@@ -1,5 +1,6 @@
 import express from 'express';
 import { AIService } from '../services/aiService.js';
+import { AIVisionService } from '../services/aiVisionService.js';
 import { PipelineService } from '../services/pipelineService.js';
 import { ProjectRepository } from '../models/Project.js';
 import { getTechnologyAdvice, TECH_PROS_CONS } from '../services/generators/techAdvisorCatalog.js';
@@ -7,17 +8,62 @@ import { v4 as uuidv4 } from 'uuid';
 
 const router = express.Router();
 
-// Step 1 -> Step 2: Understand requirements & suggest selectable technologies
+// Step 1 -> Step 2: Understand requirements & suggest selectable technologies (Text and/or Screenshot)
 router.post('/analyze', async (req, res) => {
   try {
-    const { prompt } = req.body;
-    if (!prompt || !prompt.trim()) {
-      return res.status(400).json({ message: 'Please provide a project prompt or idea' });
+    let { prompt, screenshot } = req.body;
+    let visualDesign = null;
+
+    if (screenshot) {
+      try {
+        visualDesign = await AIVisionService.analyzeScreenshot(screenshot, prompt || '');
+        if ((!prompt || !prompt.trim()) && visualDesign.suggestedPrompt) {
+          prompt = visualDesign.suggestedPrompt;
+        }
+      } catch (visionErr) {
+        console.warn('[AI Vision Analyze Error]', visionErr.message);
+      }
     }
+
+    if (!prompt || !prompt.trim()) {
+      return res.status(400).json({ message: 'Please provide a project prompt or upload a design screenshot' });
+    }
+
     const analysis = AIService.analyzePromptRequirements(prompt);
+    if (visualDesign) {
+      analysis.visualDesign = visualDesign;
+      analysis.hasScreenshot = true;
+      if (visualDesign.detectedTitle) {
+        analysis.suggestedTitle = visualDesign.detectedTitle;
+      }
+      if (visualDesign.detectedFeatures?.length) {
+        // Merge visual features into detected features
+        const existingNames = new Set(analysis.detectedFeatures.map(f => f.name.toLowerCase()));
+        for (const feat of visualDesign.detectedFeatures) {
+          if (!existingNames.has(feat.name.toLowerCase())) {
+            analysis.detectedFeatures.unshift(feat);
+          }
+        }
+      }
+    }
+
     res.json(analysis);
   } catch (err) {
     res.status(500).json({ message: err.message || 'Error analyzing requirements' });
+  }
+});
+
+// Dedicated Screenshot-to-Code Vision Analysis
+router.post('/analyze-screenshot', async (req, res) => {
+  try {
+    const { screenshot, prompt } = req.body;
+    if (!screenshot) {
+      return res.status(400).json({ message: 'Screenshot image data is required' });
+    }
+    const visionResult = await AIVisionService.analyzeScreenshot(screenshot, prompt || '');
+    res.json(visionResult);
+  } catch (err) {
+    res.status(500).json({ message: err.message || 'Failed to analyze screenshot' });
   }
 });
 
@@ -51,7 +97,7 @@ router.post('/plan', async (req, res) => {
 // Step 3 -> Step 4: User reviews plan and clicks "Approve & Generate Project"
 router.post('/start', async (req, res) => {
   try {
-    const { prompt, techSelection, approvedPlan } = req.body;
+    const { prompt, techSelection, approvedPlan, visualDesign, screenshot } = req.body;
     if (!prompt) {
       return res.status(400).json({ message: 'Prompt is required' });
     }
@@ -59,8 +105,10 @@ router.post('/start', async (req, res) => {
     const projectId = uuidv4();
     const project = await ProjectRepository.create({
       projectId,
-      title: approvedPlan?.title || 'Generating Project...',
+      title: approvedPlan?.title || visualDesign?.detectedTitle || 'Generating Project...',
       prompt,
+      visualDesign: visualDesign || null,
+      screenshot: screenshot ? (screenshot.length > 500000 ? screenshot.substring(0, 500000) : screenshot) : null,
       techStack: {
         frontend: techSelection?.frontend || 'React',
         backend: techSelection?.backend || 'Node.js + Express',
