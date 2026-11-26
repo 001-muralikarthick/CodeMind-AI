@@ -264,7 +264,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/orders', orderRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(\`[Server] Food Ordering Backend running on port \${PORT}\`);
 });`
@@ -1157,11 +1157,39 @@ export default function HomePage({ onSelectRestaurant }) {
 }`
     },
     {
+      path: "client/package.json",
+      name: "package.json",
+      category: "frontend",
+      language: "json",
+      content: `{
+  "name": "food-ordering-client",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "lucide-react": "^0.378.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.0",
+    "vite": "^5.2.0",
+    "tailwindcss": "^3.4.3",
+    "postcss": "^8.4.38",
+    "autoprefixer": "^10.4.19"
+  }
+}`
+    },
+    {
       path: "client/src/services/api.js",
       name: "api.js",
       category: "frontend",
       language: "javascript",
-      content: `const BASE_URL = 'http://localhost:5000/api';
+      content: `const BASE_URL = '/api';
 
 const getHeaders = () => {
   const s = localStorage.getItem('food_user');

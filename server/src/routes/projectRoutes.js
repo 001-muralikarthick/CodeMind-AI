@@ -4,6 +4,7 @@ import { createProjectZip } from '../services/zipService.js';
 import { generatePDFDocument, generateDOCXDocument } from '../services/docService.js';
 import { ModificationService } from '../services/modificationService.js';
 import { CodeQualityService } from '../services/codeQualityService.js';
+import { enrichWithFullScaffold } from '../services/scaffoldService.js';
 import archiver from 'archiver';
 
 const router = express.Router();
@@ -75,7 +76,9 @@ router.get('/:projectId/download/zip', async (req, res) => {
     const project = await ProjectRepository.findById(req.params.projectId);
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
-    const zipBuffer = await createProjectZip(project);
+    // Always ensure full scaffold (package.json, run.bat, client/package.json, ports) before archiving
+    const enrichedProject = enrichWithFullScaffold(project);
+    const zipBuffer = await createProjectZip(enrichedProject);
     const filename = `${(project.title || 'project').toLowerCase().replace(/[\s\W-]+/g, '-')}.zip`;
 
     res.set({

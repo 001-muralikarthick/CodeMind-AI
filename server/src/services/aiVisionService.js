@@ -24,8 +24,9 @@ export class AIVisionService {
       rawBase64 = parts[1];
     }
 
-    // Try Gemini Multimodal Vision if key is available
-    if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim()) {
+    // Try Gemini Multimodal Vision if key is available and format is raster
+    const isRaster = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'].includes(mimeType.toLowerCase());
+    if (isRaster && process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim()) {
       try {
         const geminiResult = await this.analyzeWithGeminiVision(rawBase64, mimeType, userPrompt);
         if (geminiResult) return geminiResult;
@@ -53,7 +54,7 @@ export class AIVisionService {
    */
   static async analyzeWithGeminiVision(rawBase64, mimeType, userPrompt) {
     const apiKey = process.env.GEMINI_API_KEY.trim();
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
 
     const promptText = `
 You are an expert Frontend Architect and UI/UX Designer.
