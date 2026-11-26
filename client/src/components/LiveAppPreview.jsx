@@ -30,12 +30,18 @@ export default function LiveAppPreview({ project }) {
   const [viewMode, setViewMode] = useState('app'); // 'app' | 'split' | 'screenshot'
 
   const title = project?.visualDesign?.detectedTitle || project?.title || 'Generated Application';
-  const domain = (project?.requirementsAnalysis?.overview || project?.prompt || '').toLowerCase();
+  const domain = (
+    (project?.visualDesign?.detectedTitle || '') + ' ' +
+    (project?.visualDesign?.domain || '') + ' ' +
+    (project?.title || '') + ' ' +
+    (project?.requirementsAnalysis?.overview || '') + ' ' +
+    (project?.prompt || '')
+  ).toLowerCase();
 
   // Detect domain
   const isGym = domain.includes('gym') || domain.includes('fitness') || domain.includes('workout') || domain.includes('trainer');
   const isCricket = domain.includes('cricket') || domain.includes('match') || domain.includes('player') || domain.includes('wicket');
-  const isFood = domain.includes('food') || domain.includes('restaurant') || domain.includes('menu') || domain.includes('dish');
+  const isFood = domain.includes('food') || domain.includes('restaurant') || domain.includes('menu') || domain.includes('dish') || domain.includes('tastedash') || domain.includes('pizza') || domain.includes('burger') || domain.includes('eat');
   const isHospital = domain.includes('hospital') || domain.includes('patient') || domain.includes('doctor') || domain.includes('clinic');
 
   // Extract entities from schema design if available
@@ -342,6 +348,253 @@ export default function LiveAppPreview({ project }) {
           </div>
         </div>
       `;
+    } else if (isFood) {
+      specificContent = `
+        <!-- Food Platform Banner -->
+        <div class="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-red-500/10 border border-amber-500/20 rounded-2xl p-5 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-2xl shadow-lg shadow-amber-500/20">
+              🍕
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <h3 class="text-base font-bold text-white">Bella Gourmet Trattoria</h3>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">★ 4.9 (1.2k+ reviews)</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">20-30 min delivery</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">Wood-fired artisan pizzas, handcrafted pasta, and gourmet burgers</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="toggleFoodTab('menu')" id="btn-food-menu" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition">Browse Menu</button>
+            <button onclick="toggleFoodTab('tracking')" id="btn-food-tracking" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 hover:text-white border border-slate-800 transition">Live Tracking</button>
+            <button onclick="toggleFoodTab('kitchen')" id="btn-food-kitchen" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 hover:text-white border border-slate-800 transition">Kitchen Admin</button>
+          </div>
+        </div>
+
+        <!-- Section 1: Customer Menu & Cart View -->
+        <div id="food-view-menu" class="grid grid-cols-1 lg:grid-cols-12 gap-6 block">
+          <!-- Left: Menu Dishes -->
+          <div class="lg:col-span-8 space-y-4">
+            <!-- Category Filter Pills -->
+            <div class="flex items-center space-x-2 overflow-x-auto pb-1">
+              <button onclick="filterCategory('all', this)" class="cat-pill px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 shrink-0">All Items</button>
+              <button onclick="filterCategory('pizza', this)" class="cat-pill px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 hover:text-white border border-slate-800 shrink-0">🍕 Pizza</button>
+              <button onclick="filterCategory('burger', this)" class="cat-pill px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 hover:text-white border border-slate-800 shrink-0">🍔 Burgers</button>
+              <button onclick="filterCategory('asian', this)" class="cat-pill px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 hover:text-white border border-slate-800 shrink-0">🍣 Asian & Rolls</button>
+              <button onclick="filterCategory('dessert', this)" class="cat-pill px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 hover:text-white border border-slate-800 shrink-0">🍰 Desserts</button>
+            </div>
+
+            <!-- Dishes Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Dish 1 -->
+              <div class="dish-card bg-slate-900/90 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-4 transition group flex flex-col justify-between" data-cat="pizza">
+                <div>
+                  <div class="flex items-start justify-between">
+                    <span class="text-3xl">🍕</span>
+                    <span class="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">Best Seller</span>
+                  </div>
+                  <h4 class="font-bold text-sm text-white mt-2 group-hover:text-amber-300">Artisan Truffle Pizza</h4>
+                  <p class="text-xs text-slate-400 mt-1 line-clamp-2">Wild mushrooms, black truffle oil, fresh buffalo mozzarella, and aromatic basil.</p>
+                </div>
+                <div class="flex items-center justify-between pt-3 mt-3 border-t border-slate-800/80">
+                  <span class="text-base font-extrabold text-amber-400 font-mono">$18.50</span>
+                  <button onclick="addToCart('Artisan Truffle Pizza', 18.50)" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-md shadow-amber-500/20 transition">+ Add to Cart</button>
+                </div>
+              </div>
+
+              <!-- Dish 2 -->
+              <div class="dish-card bg-slate-900/90 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-4 transition group flex flex-col justify-between" data-cat="burger">
+                <div>
+                  <div class="flex items-start justify-between">
+                    <span class="text-3xl">🍔</span>
+                    <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Chef Special</span>
+                  </div>
+                  <h4 class="font-bold text-sm text-white mt-2 group-hover:text-amber-300">Smoked Angus Burger</h4>
+                  <p class="text-xs text-slate-400 mt-1 line-clamp-2">Double smoked beef patty, aged cheddar, caramelized onions, chipotle aioli on brioche.</p>
+                </div>
+                <div class="flex items-center justify-between pt-3 mt-3 border-t border-slate-800/80">
+                  <span class="text-base font-extrabold text-amber-400 font-mono">$14.00</span>
+                  <button onclick="addToCart('Smoked Angus Burger', 14.00)" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-md shadow-amber-500/20 transition">+ Add to Cart</button>
+                </div>
+              </div>
+
+              <!-- Dish 3 -->
+              <div class="dish-card bg-slate-900/90 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-4 transition group flex flex-col justify-between" data-cat="asian">
+                <div>
+                  <div class="flex items-start justify-between">
+                    <span class="text-3xl">🍣</span>
+                    <span class="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">Fresh</span>
+                  </div>
+                  <h4 class="font-bold text-sm text-white mt-2 group-hover:text-amber-300">Spicy Salmon Dragon Roll</h4>
+                  <p class="text-xs text-slate-400 mt-1 line-clamp-2">Atlantic salmon, avocado, spicy mayo, toasted sesame, and sweet unagi drizzle.</p>
+                </div>
+                <div class="flex items-center justify-between pt-3 mt-3 border-t border-slate-800/80">
+                  <span class="text-base font-extrabold text-amber-400 font-mono">$16.20</span>
+                  <button onclick="addToCart('Spicy Salmon Dragon Roll', 16.20)" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-md shadow-amber-500/20 transition">+ Add to Cart</button>
+                </div>
+              </div>
+
+              <!-- Dish 4 -->
+              <div class="dish-card bg-slate-900/90 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-4 transition group flex flex-col justify-between" data-cat="dessert">
+                <div>
+                  <div class="flex items-start justify-between">
+                    <span class="text-3xl">🍰</span>
+                    <span class="text-[10px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">Sweet</span>
+                  </div>
+                  <h4 class="font-bold text-sm text-white mt-2 group-hover:text-amber-300">Classic Italian Tiramisu</h4>
+                  <p class="text-xs text-slate-400 mt-1 line-clamp-2">Espresso-soaked ladyfingers, velvety mascarpone cream, and dark cocoa dusting.</p>
+                </div>
+                <div class="flex items-center justify-between pt-3 mt-3 border-t border-slate-800/80">
+                  <span class="text-base font-extrabold text-amber-400 font-mono">$7.50</span>
+                  <button onclick="addToCart('Classic Italian Tiramisu', 7.50)" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-md shadow-amber-500/20 transition">+ Add to Cart</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Interactive Order Cart Drawer -->
+          <div class="lg:col-span-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sticky top-20 shadow-xl space-y-4">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div class="flex items-center space-x-2">
+                  <span class="text-base">🛒</span>
+                  <h4 class="font-bold text-sm text-white">Your Food Cart</h4>
+                </div>
+                <span id="cart-count-badge" class="px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-extrabold">2 items</span>
+              </div>
+
+              <!-- Cart Items List -->
+              <div id="cart-items-container" class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs">
+                  <div>
+                    <div class="font-semibold text-white">Artisan Truffle Pizza</div>
+                    <div class="text-[10px] text-amber-400 font-mono">$18.50</div>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <button onclick="changeQty('Artisan Truffle Pizza', -1)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">-</button>
+                    <span class="font-mono font-bold text-white">1</span>
+                    <button onclick="changeQty('Artisan Truffle Pizza', 1)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">+</button>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs">
+                  <div>
+                    <div class="font-semibold text-white">Smoked Angus Burger</div>
+                    <div class="text-[10px] text-amber-400 font-mono">$14.00</div>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <button onclick="changeQty('Smoked Angus Burger', -1)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">-</button>
+                    <span class="font-mono font-bold text-white">1</span>
+                    <button onclick="changeQty('Smoked Angus Burger', 1)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">+</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Order Calculations -->
+              <div class="pt-3 border-t border-slate-800/80 space-y-1.5 text-xs text-slate-400">
+                <div class="flex justify-between">
+                  <span>Subtotal</span>
+                  <span id="cart-subtotal" class="font-mono text-white">$32.50</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Delivery Fee</span>
+                  <span class="font-mono text-emerald-400">FREE</span>
+                </div>
+                <div class="flex justify-between pt-1 border-t border-slate-800 font-bold text-sm text-white">
+                  <span>Total Amount</span>
+                  <span id="cart-total" class="font-mono text-amber-400">$32.50</span>
+                </div>
+              </div>
+
+              <button onclick="placeOrder()" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/25 transition">
+                Proceed to Checkout • Place Order
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Live Order Tracking View -->
+        <div id="food-view-tracking" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider">Live Order Status: #ORD-9842</h3>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">Estimated delivery: 22 minutes (Courier on route via Main St)</p>
+            </div>
+            <button onclick="advanceOrderStatus()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">
+              Simulate Next Status ➔
+            </button>
+          </div>
+
+          <!-- 4-Stage Progress Timeline -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div id="step-track-1" class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+              <div class="text-[10px] font-bold text-emerald-400">STAGE 1</div>
+              <div class="text-xs font-bold text-white mt-1">✓ Order Placed</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Payment confirmed</div>
+            </div>
+            <div id="step-track-2" class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
+              <div id="step-track-2-badge" class="text-[10px] font-bold text-amber-400 animate-pulse">STAGE 2 (CURRENT)</div>
+              <div class="text-xs font-bold text-white mt-1">🍳 Kitchen Preparing</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Chef assembling dishes</div>
+            </div>
+            <div id="step-track-3" class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+              <div id="step-track-3-badge" class="text-[10px] font-bold text-slate-500">STAGE 3</div>
+              <div class="text-xs font-bold text-slate-300 mt-1">🛵 Out for Delivery</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Courier assigned</div>
+            </div>
+            <div id="step-track-4" class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+              <div id="step-track-4-badge" class="text-[10px] font-bold text-slate-500">STAGE 4</div>
+              <div class="text-xs font-bold text-slate-300 mt-1">📦 Delivered</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Drop at doorstep</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Kitchen Admin View -->
+        <div id="food-view-kitchen" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-white">Kitchen Order Queue & Display System (KDS)</h3>
+              <p class="text-xs text-slate-400">Incoming tickets for Bella Gourmet Trattoria</p>
+            </div>
+            <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20">Kitchen Online</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white text-xs">#ORD-9842 • Dine Delivery</span>
+                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">In Prep</span>
+              </div>
+              <div class="text-xs text-slate-300 space-y-1">
+                <div>• 1x Artisan Truffle Pizza (Extra basil)</div>
+                <div>• 1x Smoked Angus Burger (No pickles)</div>
+              </div>
+              <div class="pt-2 flex items-center justify-end space-x-2">
+                <button onclick="showToast('Ticket marked ready for delivery!')" class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold">Mark Food Ready</button>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white text-xs">#ORD-9843 • Pick-Up</span>
+                <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-bold">New Order</span>
+              </div>
+              <div class="text-xs text-slate-300 space-y-1">
+                <div>• 2x Spicy Salmon Dragon Roll</div>
+                <div>• 1x Classic Italian Tiramisu</div>
+              </div>
+              <div class="pt-2 flex items-center justify-end space-x-2">
+                <button onclick="showToast('Ticket accepted by Kitchen!')" class="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold">Accept Ticket</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
     } else {
       // Custom Domain Dynamic Builder
       specificContent = `
@@ -555,6 +808,144 @@ export default function LiveAppPreview({ project }) {
           }
           function addWicket() {
             showToast('WICKET! Pitch-side records updated.');
+          }
+
+          // Food Ordering App Controller
+          const foodCart = {
+            'Artisan Truffle Pizza': { price: 18.50, qty: 1 },
+            'Smoked Angus Burger': { price: 14.00, qty: 1 }
+          };
+
+          function renderFoodCart() {
+            const container = document.getElementById('cart-items-container');
+            const countBadge = document.getElementById('cart-count-badge');
+            const subtotalEl = document.getElementById('cart-subtotal');
+            const totalEl = document.getElementById('cart-total');
+            if (!container) return;
+
+            let total = 0;
+            let count = 0;
+            container.innerHTML = '';
+
+            for (const [name, item] of Object.entries(foodCart)) {
+              if (item.qty <= 0) continue;
+              count += item.qty;
+              total += item.price * item.qty;
+              const row = document.createElement('div');
+              row.className = 'flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs';
+              row.innerHTML = \`
+                <div>
+                  <div class="font-semibold text-white">\${name}</div>
+                  <div class="text-[10px] text-amber-400 font-mono">$\${(item.price * item.qty).toFixed(2)}</div>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button onclick="changeQty('\${name}', -1)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">-</button>
+                  <span class="font-mono font-bold text-white">\${item.qty}</span>
+                  <button onclick="changeQty('\${name}', 1)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">+</button>
+                </div>
+              \`;
+              container.appendChild(row);
+            }
+
+            if (count === 0) {
+              container.innerHTML = '<div class="text-xs text-slate-500 py-3 text-center">Your cart is empty. Add dishes to get started!</div>';
+            }
+
+            if (countBadge) countBadge.textContent = count + ' items';
+            if (subtotalEl) subtotalEl.textContent = '$' + total.toFixed(2);
+            if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
+          }
+
+          function addToCart(name, price) {
+            if (!foodCart[name]) {
+              foodCart[name] = { price, qty: 0 };
+            }
+            foodCart[name].qty += 1;
+            renderFoodCart();
+            showToast('✓ Added to cart: ' + name);
+          }
+
+          function changeQty(name, delta) {
+            if (foodCart[name]) {
+              foodCart[name].qty += delta;
+              if (foodCart[name].qty < 0) foodCart[name].qty = 0;
+              renderFoodCart();
+            }
+          }
+
+          function placeOrder() {
+            let total = 0;
+            for (const item of Object.values(foodCart)) total += item.price * item.qty;
+            if (total <= 0) {
+              showToast('Please add items to your cart before checkout.');
+              return;
+            }
+            showToast('🎉 Order placed successfully! Transferring to live tracking...');
+            setTimeout(() => {
+              toggleFoodTab('tracking');
+            }, 800);
+          }
+
+          function toggleFoodTab(tabId) {
+            ['menu', 'tracking', 'kitchen'].forEach(t => {
+              const el = document.getElementById('food-view-' + t);
+              const btn = document.getElementById('btn-food-' + t);
+              if (el) el.classList.add('hidden');
+              if (btn) {
+                btn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-slate-300 hover:text-white border border-slate-800 transition';
+              }
+            });
+            const activeEl = document.getElementById('food-view-' + tabId);
+            const activeBtn = document.getElementById('btn-food-' + tabId);
+            if (activeEl) activeEl.classList.remove('hidden');
+            if (activeBtn) {
+              activeBtn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition';
+            }
+          }
+
+          function filterCategory(cat, btn) {
+            document.querySelectorAll('.cat-pill').forEach(b => {
+              b.className = 'cat-pill px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 hover:text-white border border-slate-800 shrink-0';
+            });
+            if (btn) btn.className = 'cat-pill px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 shrink-0';
+            document.querySelectorAll('.dish-card').forEach(c => {
+              if (cat === 'all' || c.getAttribute('data-cat') === cat) {
+                c.style.display = 'flex';
+              } else {
+                c.style.display = 'none';
+              }
+            });
+          }
+
+          let currentOrderStep = 2;
+          function advanceOrderStatus() {
+            currentOrderStep++;
+            if (currentOrderStep > 4) currentOrderStep = 1;
+            for (let i = 1; i <= 4; i++) {
+              const stepEl = document.getElementById('step-track-' + i);
+              const badgeEl = document.getElementById('step-track-' + i + '-badge');
+              if (!stepEl) continue;
+              if (i < currentOrderStep) {
+                stepEl.className = 'p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30';
+                if (badgeEl) {
+                  badgeEl.textContent = 'STAGE ' + i + ' (DONE)';
+                  badgeEl.className = 'text-[10px] font-bold text-emerald-400';
+                }
+              } else if (i === currentOrderStep) {
+                stepEl.className = 'p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30';
+                if (badgeEl) {
+                  badgeEl.textContent = 'STAGE ' + i + ' (CURRENT)';
+                  badgeEl.className = 'text-[10px] font-bold text-amber-400 animate-pulse';
+                }
+              } else {
+                stepEl.className = 'p-3.5 rounded-xl bg-slate-950 border border-slate-800';
+                if (badgeEl) {
+                  badgeEl.textContent = 'STAGE ' + i;
+                  badgeEl.className = 'text-[10px] font-bold text-slate-500';
+                }
+              }
+            }
+            showToast('Order status advanced to Stage ' + currentOrderStep);
           }
         </script>
       </body>
