@@ -525,12 +525,18 @@ docker-compose up --build
       let relPath = match[2];
       const currentDir = jsFile.path.substring(0, jsFile.path.lastIndexOf('/'));
       let resolved = currentDir + '/' + relPath.replace(/^\.\//, '');
-      if (!resolved.endsWith('.jsx') && !resolved.endsWith('.js')) {
-        if (!filePaths.has(resolved + '.jsx') && !filePaths.has(resolved + '.js')) {
-          resolved = resolved + '.jsx';
-        }
+
+      // Check if file already exists with or without .jsx / .js
+      if (filePaths.has(resolved) || filePaths.has(resolved + '.jsx') || filePaths.has(resolved + '.js')) {
+        continue; // Already exists, never create an extensionless duplicate!
       }
-      if (!filePaths.has(resolved) && !filePaths.has(resolved.replace('.jsx', '.js'))) {
+
+      // Always guarantee .jsx extension for React JSX files
+      if (!resolved.endsWith('.jsx') && !resolved.endsWith('.js')) {
+        resolved = resolved + '.jsx';
+      }
+
+      if (!filePaths.has(resolved)) {
         const componentName = resolved.split('/').pop().replace(/\.(jsx|js)$/, '');
         files.push({
           path: resolved,
